@@ -1,0 +1,223 @@
+﻿<html>
+	<head>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+    
+	</head>
+	<body>
+		<script src="three.min.js"></script>
+		<script src="functions.js"></script>
+  
+  <header>
+    <h1>Four in a line 3D game </h1>
+  </header>
+         <input type="box" name="Player 1" value="Player 1" id="Player 1" />
+                 <label for="Player 1" id="player1points"></label><br />
+          <input type="box" name="Player 2" value="Player 2" id="Player 2" />
+                 <label for="Player 2" id="player2points"></label><br />
+		<script>
+			var renderer = new THREE.WebGLRenderer({antialias: true});
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			renderer.setClearColor('skyblue');
+
+                        var endGame = false;
+                        var info = []
+                        for(var i = 0;i<11;i++)
+                        info[i] = [0,0,0,0,0,0,0,0,0,0,0];
+                        var arr = []
+                        for(var i = 0;i<8;i++)
+                        arr[i] = [];
+                        var  wins1 = false;
+                        var  wins2 = false;
+                        var  wins12 = false;
+                        var player1 = true;
+                        var movesCount = 0;
+                        var gamesPlayed = 0;
+                        var player1points = 0;
+                        var player2points = 0;
+                        
+			document.body.addEventListener( 'keydown', onKeyDown );
+                        
+			var scene = new THREE.Scene();
+			
+			var camera = new THREE.PerspectiveCamera( 30, window.innerWidth/window.innerHeight, 0.1, 1000 );
+			camera.position.set(0,5,110);
+			camera.lookAt(new THREE.Vector3(0,-5,0));
+	
+			var cone = new THREE.Mesh(
+				new THREE.ConeGeometry(3,10,5),
+				new THREE.MeshPhongMaterial({color:'goldenrod',shininess: 60, specular: 0xffffff})
+			);
+			cone.position.set(0,-25,0);
+			scene.add( cone );
+                         
+                        var beams = new THREE.Object3D();
+                        scene.add(beams);
+                        for(var i = 0;i<7;i++)
+                        {
+                         var beam = new THREE.Mesh(
+				new THREE.BoxGeometry(37,1,8),
+				new THREE.MeshPhongMaterial({color:'slateblue',shininess: 0, specular: 0xffffff})
+			);
+                        beam.position.set(0,i*5 - 30/2,0)
+                        beams.add(beam);
+                        }
+                        
+                        for(var i = 0;i<8;i++)
+                        {
+                        var beam = new THREE.Mesh(
+				new THREE.BoxGeometry(1,32,8),
+				new THREE.MeshPhongMaterial({color:'slateblue',shininess: 0, specular: 0xffffff})
+			);
+                        beam.position.set(i*5 - 35/2 ,0,0)
+                        beams.add(beam);
+                        }
+
+                        var box = new THREE.Mesh(
+				new THREE.BoxGeometry(4,4,4),
+				new THREE.MeshPhongMaterial({color:'blue',shininess: 0, specular: 0xffffff}))
+		
+                        box.position.set(-35,2,0)
+                        scene.add(box);
+
+                        var sphere = new THREE.Mesh(
+				new THREE.SphereGeometry(2),
+				new THREE.MeshPhongMaterial({color:'yellow',shininess: 0, specular: 0xffffff}))
+                        sphere.position.set(35,2,0)
+                        scene.add(sphere);
+
+                        var arrow = new THREE.Object3D();
+                        scene.add(arrow);
+                        var box = new THREE.Mesh(
+				new THREE.BoxGeometry(10,2,2),
+				new THREE.MeshPhongMaterial({color:'green',shininess: 0, specular: 0xffffff}))
+		        arrow.add(box);
+                        var box = new THREE.Mesh(
+				new THREE.BoxGeometry(6,2,2),
+				new THREE.MeshPhongMaterial({color:'green',shininess: 0, specular: 0xffffff}))
+                        box.rotation.z = Math.PI/4
+                        box.position.set(3.8,-1.41,0);
+		        arrow.add(box);
+                        var box = new THREE.Mesh(
+				new THREE.BoxGeometry(6,2,2),
+				new THREE.MeshPhongMaterial({color:'green',shininess: 0, specular: 0xffffff}))
+                        box.rotation.z = -Math.PI/4
+                        box.position.set(3.8,1.41,0);
+		        arrow.add(box);
+                        
+                        arrow.position.set(-47,2,0)
+                        //arrow.position.set(0,0,10)
+                           
+			// светлина
+			var light = new THREE.PointLight("white",0.8);
+			light.position.set (0,50,50);
+			scene.add( light );
+
+			scene.add( new THREE.AmbientLight('gold'));
+
+                        /*var light1 = new THREE.DirectionalLight( 0x00ff00, 0.5 );
+                        light1.target.position = (-40,9,50);
+			light1.position.set (-40,9,-8);
+			scene.add( light1 );*/
+                        
+                        var options = {
+					height: 2,
+					curveSegments: 12,
+					bevelEnabled: true,
+					bevelThickness: 0.1,
+					bevelSize: 0.1
+				};
+	
+			var material = new THREE.MeshPhongMaterial({color: 'green', shininess: 100});
+
+			var pl = new THREE.Object3D();
+			scene.add( pl );
+			
+			new THREE.FontLoader().load( 'Player1.json', function ( font )
+				{
+					options.size = 5;
+					options.font = font;
+					var geometry = new THREE.TextGeometry( "Player 1", options );
+					geometry.center();
+					text = new THREE.Mesh( geometry, material );
+					text.position.set(-35,9,0);
+					pl.add( text );			
+				});
+
+                        var pl2 = new THREE.Object3D();
+			scene.add( pl2 );
+			
+			new THREE.FontLoader().load( 'Player2.json', function ( font )
+				{
+					options.size = 5;
+					options.font = font;
+					var geometry = new THREE.TextGeometry( "Player 2", options );
+					geometry.center();
+					text = new THREE.Mesh( geometry, material );
+					text.position.set(35,9,0);
+					pl2.add( text );			
+				});
+
+                        var player1wins = new THREE.Object3D();
+			
+			new THREE.FontLoader().load( 'Player 1 wins.json', function ( font )
+				{
+					options.size = 5;
+					options.font = font;
+					var geometry = new THREE.TextGeometry( "Player 1 wins", options );
+					geometry.center();
+					text = new THREE.Mesh( geometry, material );
+					text.position.set(0,0,10);
+					player1wins.add( text );			
+				});
+
+                        var player2wins = new THREE.Object3D();
+			
+			new THREE.FontLoader().load( 'Player 2 wins.json', function ( font )
+				{
+					options.size = 5;
+					options.font = font;
+					var geometry = new THREE.TextGeometry( "Player 2 wins", options );
+					geometry.center();
+					text = new THREE.Mesh( geometry, material );
+					text.position.set(0,0,10);
+					player2wins.add( text );			
+				});
+
+                        var tie = new THREE.Object3D();
+			
+			new THREE.FontLoader().load( "It's a tie.json", function ( font )
+				{
+					options.size = 5;
+					options.font = font;
+					var geometry = new THREE.TextGeometry( "It's a tie", options );
+					geometry.center();
+					text = new THREE.Mesh( geometry, material );
+					text.position.set(0,0,10);
+					tie.add( text );			
+				});
+			  document.getElementById('player1points').innerHTML = player1points;
+                          document.getElementById('player2points').innerHTML = player2points;
+                        //var clock = new THREE.Clock()
+                        //renderer.render( scene, camera );
+			function drawFrame()
+			{
+				requestAnimationFrame( drawFrame );
+			
+				//cone.rotation.y += 0.01;
+                                //var t = clock.getElapsedTime()
+
+                                
+				/*scene.rotation.x += Math.cos((t)/10)/5000
+                                scene.rotation.y += Math.cos(t/10)/5000
+                                scene.rotation.z += Math.cos((t)/10)/5000*/
+				renderer.render( scene, camera );
+			}
+			
+			drawFrame();
+		</script>
+	</body>
+</html>
